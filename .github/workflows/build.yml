@@ -36,9 +36,9 @@ jobs:
           # Signed with signing/jono-widgets.pfx when it's in the repo; otherwise a compile-only check.
           $signed = Test-Path signing/jono-widgets.pfx
           "signed=$($signed.ToString().ToLower())" >> $env:GITHUB_OUTPUT
-          $sign = if ($signed) {
+          $sign = @(if ($signed) {
             @('/p:AppxPackageSigningEnabled=true', "/p:PackageCertificateKeyFile=$pwd\signing\jono-widgets.pfx", '/p:PackageCertificatePassword=jono-widgets')
-          } else { @('/p:AppxPackageSigningEnabled=false') }
+          } else { '/p:AppxPackageSigningEnabled=false' })
           msbuild src/JonoWidgets/JonoWidgets.csproj /restore /m /v:minimal `
             /p:Configuration=Release /p:Platform=x64 /p:RuntimeIdentifier=win-x64 `
             /p:GenerateAppxPackageOnBuild=true /p:AppxBundle=Never /p:UapAppxPackageBuildMode=SideloadOnly `
