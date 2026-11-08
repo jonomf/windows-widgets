@@ -52,4 +52,4 @@ sent to their own service.
 - `tools/make_assets.py` draws the icons and widget-picker screenshots.
 - Every push to `main` builds a signed MSIX on GitHub Actions and publishes release `build-N`
   (package version 1.0.N.0). `signing/` holds the self-signed certificate (subject `CN=Jono Widgets`,
-  which must match the manifest's Publisher).
+  which must match the manifest's Publisher). The private key `signing/jono-widgets.pfx` is only committed while the repo is private; without it CI just compiles.
