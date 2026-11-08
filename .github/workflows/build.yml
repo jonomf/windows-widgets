@@ -1,0 +1,75 @@
+name: build
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    env:
+      BUILD: ${{ github.run_number }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - uses: microsoft/setup-msbuild@v2
+
+      - name: Set package version 1.0.${{ github.run_number }}.0
+        shell: pwsh
+        run: |
+          $m = 'src/JonoWidgets/Package.appxmanifest'
+          (Get-Content $m -Raw) -replace 'Version="1\.0\.0\.0"', "Version=`"1.0.$env:BUILD.0`"" | Set-Content $m -NoNewline
+          Select-String -Path $m -Pattern 'Version="1\.0\.' | ForEach-Object { $_.Line.Trim() }
+
+      - name: Build signed MSIX (x64)
+        shell: pwsh
+        run: |
+          msbuild src/JonoWidgets/JonoWidgets.csproj /restore /m /v:minimal `
+            /p:Configuration=Release /p:Platform=x64 /p:RuntimeIdentifier=win-x64 `
+            /p:GenerateAppxPackageOnBuild=true /p:AppxBundle=Never /p:UapAppxPackageBuildMode=SideloadOnly `
+            /p:AppxPackageSigningEnabled=true `
+            /p:PackageCertificateKeyFile="$pwd\signing\jono-widgets.pfx" /p:PackageCertificatePassword=jono-widgets `
+            /p:AppxPackageDir="$pwd\out\"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          Get-ChildItem out -Recurse -File | ForEach-Object { $_.FullName.Substring($pwd.Path.Length) }
+
+      - name: Assemble release
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force dist/JonoWidgets/Dependencies | Out-Null
+          $app = Get-ChildItem out -Recurse -Filter *.msix | Where-Object { $_.FullName -notmatch '\\Dependencies\\' } | Select-Object -First 1
+          if (-not $app) { throw 'No .msix was built' }
+          Copy-Item $app.FullName dist/JonoWidgets/JonoWidgets.msix
+          Copy-Item $app.FullName dist/JonoWidgets.msix
+          # The Windows App Runtime packages this app depends on (from the build output and the NuGet cache).
+          $deps = @(Get-ChildItem out -Recurse -Filter *.msix | Where-Object { $_.FullName -match '\\Dependencies\\(x64\\)?[^\\]+\.msix$' })
+          $deps += @(Get-ChildItem "$env:USERPROFILE\.nuget\packages" -Recurse -Filter 'Microsoft.WindowsAppRuntime*.msix' -ErrorAction SilentlyContinue |
+            Where-Object { $_.FullName -match 'x64' })
+          foreach ($d in $deps) {
+            Write-Host "dependency: $($d.FullName)"
+            Copy-Item $d.FullName dist/JonoWidgets/Dependencies/ -Force
+          }
+          Copy-Item signing/jono-widgets.cer dist/JonoWidgets/
+          Copy-Item installer/Install.ps1, installer/Install.cmd dist/JonoWidgets/
+          Compress-Archive -Path dist/JonoWidgets/* -DestinationPath dist/JonoWidgets.zip
+          Get-ChildItem dist -Recurse -File | ForEach-Object { "{0,10}  {1}" -f $_.Length, $_.FullName.Substring($pwd.Path.Length) }
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: build-${{ github.run_number }}
+          name: Build ${{ github.run_number }}
+          make_latest: true
+          body: |
+            **First install:** download `JonoWidgets.zip`, extract it, and double-click `Install.cmd`.
+            **Update:** download `JonoWidgets.msix` and double-click it, then click Update.
+          files: |
+            dist/JonoWidgets.zip
+            dist/JonoWidgets.msix

@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Package
+  xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
+  xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
+  xmlns:uap3="http://schemas.microsoft.com/appx/manifest/uap/windows10/3"
+  xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities"
+  xmlns:com="http://schemas.microsoft.com/appx/manifest/com/windows10"
+  IgnorableNamespaces="uap uap3 rescap">
+
+  <!-- Publisher must equal the signing certificate's subject (signing/jono-widgets.cer).
+       Version is rewritten by CI to 1.0.<run number>.0. -->
+  <Identity
+    Name="Jono.Widgets"
+    Publisher="CN=Jono Widgets"
+    Version="1.0.0.0" />
+
+  <Properties>
+    <DisplayName>Jono's Widgets</DisplayName>
+    <PublisherDisplayName>Jono</PublisherDisplayName>
+    <Logo>Assets\StoreLogo.png</Logo>
+  </Properties>
+
+  <Dependencies>
+    <TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.22000.0" MaxVersionTested="10.0.26100.0" />
+  </Dependencies>
+
+  <Resources>
+    <Resource Language="x-generate"/>
+  </Resources>
+
+  <Applications>
+    <Application Id="App"
+      Executable="$targetnametoken$.exe"
+      EntryPoint="$targetentrypoint$">
+      <uap:VisualElements
+        DisplayName="Jono's Widgets"
+        Description="Todoist, Repos and Now widgets for the Widgets board (Win+W)"
+        BackgroundColor="transparent"
+        Square150x150Logo="Assets\Square150x150Logo.png"
+        Square44x44Logo="Assets\Square44x44Logo.png">
+        <uap:DefaultTile Wide310x150Logo="Assets\Wide310x150Logo.png" />
+        <uap:SplashScreen Image="Assets\SplashScreen.png" />
+      </uap:VisualElements>
+      <Extensions>
+        <com:Extension Category="windows.comServer">
+          <com:ComServer>
+            <com:ExeServer Executable="JonoWidgets.exe" Arguments="-RegisterProcessAsComServer" DisplayName="Jono's Widgets">
+              <com:Class Id="B7F976F3-893C-4FB3-A012-23837D00D64B" DisplayName="Jono's Widgets provider" />
+            </com:ExeServer>
+          </com:ComServer>
+        </com:Extension>
+        <uap3:Extension Category="windows.appExtension">
+          <uap3:AppExtension Name="com.microsoft.windows.widgets" DisplayName="Jono's Widgets" Id="jono.widgets" PublicFolder="Public">
+            <uap3:Properties>
+              <WidgetProvider>
+                <ProviderIcons>
+                  <Icon Path="Assets\StoreLogo.png" />
+                </ProviderIcons>
+                <Activation>
+                  <CreateInstance ClassId="B7F976F3-893C-4FB3-A012-23837D00D64B" />
+                </Activation>
+                <Definitions>
+                  <Definition Id="Todoist"
+                    DisplayName="Todoist"
+                    Description="Tasks from one Todoist project or filter, most overdue first. Add one for work and one for personal."
+                    AllowMultiple="true"
+                    IsCustomizable="true">
+                    <Capabilities>
+                      <Capability><Size Name="small" /></Capability>
+                      <Capability><Size Name="medium" /></Capability>
+                      <Capability><Size Name="large" /></Capability>
+                    </Capabilities>
+                    <ThemeResources>
+                      <Icons><Icon Path="Assets\Widgets\Todoist.png" /></Icons>
+                      <Screenshots><Screenshot Path="Assets\Widgets\Todoist_Screenshot.png" DisplayAltText="Todoist tasks" /></Screenshots>
+                      <DarkMode />
+                      <LightMode />
+                    </ThemeResources>
+                  </Definition>
+                  <Definition Id="Repos"
+                    DisplayName="Repos"
+                    Description="Your GitHub repos, most recently pushed first, with each one's latest build."
+                    AllowMultiple="false"
+                    IsCustomizable="true">
+                    <Capabilities>
+                      <Capability><Size Name="small" /></Capability>
+                      <Capability><Size Name="medium" /></Capability>
+                      <Capability><Size Name="large" /></Capability>
+                    </Capabilities>
+                    <ThemeResources>
+                      <Icons><Icon Path="Assets\Widgets\Repos.png" /></Icons>
+                      <Screenshots><Screenshot Path="Assets\Widgets\Repos_Screenshot.png" DisplayAltText="GitHub repos" /></Screenshots>
+                      <DarkMode />
+                      <LightMode />
+                    </ThemeResources>
+                  </Definition>
+                  <Definition Id="Now"
+                    DisplayName="Now"
+                    Description="Say what you're doing right now with one tap. Logs to Toggl."
+                    AllowMultiple="false"
+                    IsCustomizable="true">
+                    <Capabilities>
+                      <Capability><Size Name="small" /></Capability>
+                      <Capability><Size Name="medium" /></Capability>
+                      <Capability><Size Name="large" /></Capability>
+                    </Capabilities>
+                    <ThemeResources>
+                      <Icons><Icon Path="Assets\Widgets\Now.png" /></Icons>
+                      <Screenshots><Screenshot Path="Assets\Widgets\Now_Screenshot.png" DisplayAltText="Activity buttons" /></Screenshots>
+                      <DarkMode />
+                      <LightMode />
+                    </ThemeResources>
+                  </Definition>
+                </Definitions>
+              </WidgetProvider>
+            </uap3:Properties>
+          </uap3:AppExtension>
+        </uap3:Extension>
+      </Extensions>
+    </Application>
+  </Applications>
+
+  <Capabilities>
+    <Capability Name="internetClient" />
+    <rescap:Capability Name="runFullTrust" />
+  </Capabilities>
+</Package>

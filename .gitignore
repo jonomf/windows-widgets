@@ -1,0 +1,8 @@
+bin/
+obj/
+out/
+dist/
+*.user
+.vs/
+AppPackages/
+__pycache__/
