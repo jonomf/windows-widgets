@@ -42,7 +42,7 @@ jobs:
           msbuild src/JonoWidgets/JonoWidgets.csproj /restore /m /v:minimal `
             /p:Configuration=Release /p:Platform=x64 /p:RuntimeIdentifier=win-x64 `
             /p:GenerateAppxPackageOnBuild=true /p:AppxBundle=Never /p:UapAppxPackageBuildMode=SideloadOnly `
-            /p:AppxPackageDir="$pwd\out\" @sign
+            "/p:AppxPackageDir=$($pwd.Path)\out\" @sign
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           Get-ChildItem out -Recurse -File | ForEach-Object { $_.FullName.Substring($pwd.Path.Length) }
 
