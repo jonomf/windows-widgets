@@ -112,6 +112,10 @@ internal abstract class WidgetBase
                 Render();
                 break;
             default:
+                if (verb == "saveConfig" && data["claude_link"] != null)
+                {
+                    Settings.Set("claude_link", Str(data, "claude_link") == "false" ? "false" : null);
+                }
                 Task.Run(() =>
                 {
                     try { OnAction(verb, data); }
@@ -123,12 +127,23 @@ internal abstract class WidgetBase
 
     // ------------------------------------------------------------------ shared card pieces
 
+    /// <summary>The Claude Code session that builds these widgets; ✦ in the title row opens it.</summary>
+    public const string ClaudeSessionUrl = "https://claude.ai/code/session_01DwykdeafhgAME6S4dXmHNa";
+
+    /// <summary>App-wide setting, on by default; changed from any widget's ⚙ settings.</summary>
+    protected static bool ClaudeLinkShown => Settings.Get("claude_link") != "false";
+
+    /// <summary>The show/hide choice for every widget's settings card (saved by HandleAction).</summary>
+    protected static JsonObject ClaudeSetting() => AC.Choice("claude_link", "Claude session link (✦ in the title row)",
+        new[] { ("Show", "true"), ("Hide", "false") }, ClaudeLinkShown ? "true" : "false");
+
     protected static string Str(JsonObject d, string key) => d[key]?.ToString()?.Trim() ?? "";
 
     protected string Cfg(string key, string fallback = "") => Config[key]?.ToString() ?? fallback;
 
     /// <summary>
-    /// Top row: title (tappable), any extra bits (counts), then ↑ (update available), ⟳ and ⚙.
+    /// Top row: title (tappable), any extra bits (counts), then ↑ (update available), ✦ (Claude
+    /// session), ⟳ and ⚙.
     /// </summary>
     protected JsonObject Header(string title, JsonObject? titleAction, params JsonObject?[] extras)
     {
@@ -140,6 +155,10 @@ internal abstract class WidgetBase
         if (Updates.Available)
         {
             cols.Add(AC.Col("auto", AC.Text("↑", bold: true, color: "accent")).Tap(AC.Open(Updates.ReleaseUrl)));
+        }
+        if (ClaudeLinkShown && !Small)
+        {
+            cols.Add(AC.Col("auto", AC.Text("✦", subtle: true)).Tap(AC.Open(ClaudeSessionUrl)));
         }
         cols.Add(AC.Col("auto", AC.Text(Refreshing ? "…" : "⟳", subtle: true)).Tap(AC.Exec("refresh")));
         if (!Small) cols.Add(AC.Col("auto", AC.Text("⚙", subtle: true)).Tap(AC.Exec("settings")));

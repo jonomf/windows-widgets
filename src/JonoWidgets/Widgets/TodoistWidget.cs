@@ -285,6 +285,7 @@ internal sealed class TodoistWidget : WidgetBase
             value: Cfg("name")));
         items.Add(AC.InputText("token", "Todoist token", placeholder: "Leave empty to keep the current one", password: true));
         if (error != null) items.Add(Message(error, "attention"));
+        items.Add(ClaudeSetting());
         items.Add(AC.ActionSet(
             AC.Exec("saveConfig", title: "Save"),
             Configured ? AC.Exec("cancel", title: "Cancel") : null));

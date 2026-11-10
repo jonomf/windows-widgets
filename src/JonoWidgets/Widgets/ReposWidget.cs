@@ -133,6 +133,7 @@ internal sealed class ReposWidget : WidgetBase
             AC.InputText("token", "GitHub token", "Leave empty to keep the current one", password: true),
             AC.Text(TokenHelp, subtle: true, size: "small", wrap: true, maxLines: 4, spacing: "small"),
             error == null ? null : Message(error, "attention"),
+            ClaudeSetting(),
             AC.ActionSet(AC.Exec("saveConfig", title: "Save"), AC.Exec("cancel", title: "Cancel"))));
     }
 }
